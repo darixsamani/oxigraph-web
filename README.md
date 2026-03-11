@@ -58,7 +58,7 @@ http://localhost:8080
 | `/health`        | GET           | Server health check                          |
 | `/triples`       | POST          | Insert a triple                              |
 | `/sparql`        | POST          | SPARQL query                                 |
-| `ssparql/udate`  | POST          | SPQRQL update query
+| `sparql/udate`  | POST          | SPQRQL update query
 | `/sparql?query=` | GET           | SPARQL query via URL                         |
 | `/graphs`        | POST / DELETE | Create or delete named graphs                |
 | `/rdf/import`    | POST          | Import RDF data (Turtle, N-Triples, RDF/XML) |
