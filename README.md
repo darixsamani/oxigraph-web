@@ -13,7 +13,8 @@ Provides REST endpoints, SPARQL query support, RDF import/export, graph manageme
 ## 🚀 Features
 
 - ⚡ **High-performance async REST API** built with [Salvo](https://salvo.rs/)  
-- 🧠 **SPARQL support** via GET & POST  
+- 🧠 **SPARQL support** via GET & POST
+- 📡 **SPARQL UPDATE support** via POST
 - 📦 **CRUD operations** for RDF triples  
 - 📥 **RDF import**: Turtle, N-Triples, RDF/XML  
 - 📤 **RDF export** in multiple formats  
@@ -56,6 +57,7 @@ http://localhost:8080
 | `/health`        | GET           | Server health check                          |
 | `/triples`       | POST          | Insert a triple                              |
 | `/sparql`        | POST          | SPARQL query                                 |
+| `ssparql/udate`  | POST          | SPQRQL update query
 | `/sparql?query=` | GET           | SPARQL query via URL                         |
 | `/graphs`        | POST / DELETE | Create or delete named graphs                |
 | `/rdf/import`    | POST          | Import RDF data (Turtle, N-Triples, RDF/XML) |
