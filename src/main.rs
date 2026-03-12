@@ -11,6 +11,7 @@ pub mod db;
 pub mod api;
 pub mod router;
 pub mod schemas;
+pub mod services;
 
 #[endpoint(
     tags("Main"),
@@ -19,8 +20,8 @@ pub mod schemas;
 )]
 pub fn hello(name: QueryParam<String, false>, res: &mut Response, depot: &mut Depot) {
     println!("{:?}", name);
-    let db = depot.obtain::<Db>().unwrap();
-    print!("{:?}", db);
+    let _db = depot.obtain::<Db>().unwrap();
+    // print!("{:?}", db);
     res.status_code(StatusCode::OK);
     res.render(format!("Hello, {}!", name.clone().unwrap()))
 }
@@ -31,8 +32,8 @@ pub fn hello(name: QueryParam<String, false>, res: &mut Response, depot: &mut De
     description = "description of the handle/endpoint to print hello world"
 )]
 pub fn hello_world(res: &mut Response, depot: &mut Depot) -> Result<&'static str, salvo::Error> {
-    let db = depot.obtain::<Db>().unwrap();
-    print!("{:?}", db);
+    let _db = depot.obtain::<Db>().unwrap();
+    // print!("{:?}", db);
     res.status_code(StatusCode::OK);
     Ok("Hello world")
 }
