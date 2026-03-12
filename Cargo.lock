@@ -1982,6 +1982,7 @@ dependencies = [
 name = "oxigraph-web"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "oxigraph",
  "salvo",
  "salvo-oapi",
