@@ -9,3 +9,8 @@ pub struct TripleInput {
     pub predicate: String,
     pub subject: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct SparqlQuery {
+    pub query: String,
+}
