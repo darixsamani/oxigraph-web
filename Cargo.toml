@@ -1,0 +1,20 @@
+[package]
+name = "oxigraph-web"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+serde_json = "1.0.149"
+salvo = { version = "0.89.2", features = ["oapi", "affix-state", "anyhow", "jwt-auth", "test", "cors"] }
+salvo-oapi = { version = "0.89.2", features = ["swagger-ui"] }
+serde = { version = "1.0.228", features = ["derive"] }
+
+tokio = { version="1.47.1", features= ["macros"]}
+tracing = "0.1"
+tracing-subscriber = "0.3" 
+oxigraph = "0.5.5"
+
+[[bin]]
+name = "oxigraph_web"
+path = "src/main.rs"
