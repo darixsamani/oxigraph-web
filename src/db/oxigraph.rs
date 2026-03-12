@@ -6,14 +6,6 @@ pub struct  Db {
     pub store: Arc<Store>,
 }
 
-impl std::fmt::Debug for Db {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Db")
-            .field("store", &"<Store omitted>")
-            .finish()
-    }
-}
-
 impl Db {
     pub fn new() -> Self{
         
