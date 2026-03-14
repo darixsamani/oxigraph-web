@@ -14,6 +14,6 @@ pub fn api_router () -> Router{
                             .delete(delete_graph)
                             .get(get_graphs)
                         )
-                        .push(Router::with_path("import").post(import_pdf));
+                        .push(Router::with_path("rdf/import").post(import_pdf));
     router
 }
