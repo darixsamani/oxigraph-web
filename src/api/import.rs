@@ -1,0 +1,39 @@
+use oxigraph::io::RdfFormat;
+use salvo::{prelude::*};
+use salvo_oapi::{endpoint, extract::QueryParam};
+
+use crate::db::oxigraph::Db;
+
+
+#[endpoint(
+    tags("Oxigraph"),
+    summary = "This endpoint allows you to import a graph into the Oxigraph store",
+    description = "This endpoint accepts a JSON body with the graph data. It imports the graph into the Oxigraph store and returns a success message."
+)]
+pub async fn import_pdf(
+    req: &mut Request,
+    depot: &mut Depot,
+    format: QueryParam<String, true>,
+    
+) -> Result<String, StatusError> {
+    let db = depot.obtain::<Db>().unwrap();
+    let body = req.payload().await.map_err(|_| StatusError::bad_request())?;
+
+    // also detect rdf_format from content-type header if format query parameter is not provided
+    
+    let rdf_format = {
+        match format.into_inner().to_lowercase().as_str() {
+            "turtle" | "ttl" => RdfFormat::Turtle,
+            "ntriples" | "nt" => RdfFormat::NTriples,
+            "nquads" | "nq" => RdfFormat::NQuads,
+            "trig" => RdfFormat::TriG,
+            "rdfxml" | "rdf" => RdfFormat::RdfXml,
+            "jsonld" => RdfFormat::JsonLd { profile: Default::default() },
+            _ => return Err(StatusError::bad_request()),
+        }
+    };
+
+    db.store.load_from_slice( rdf_format, body.as_ref()).map_err(|_| StatusError::bad_request())?;
+
+    Ok("Graph imported".into())
+}
