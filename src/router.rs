@@ -1,4 +1,5 @@
 use salvo::Router;
+use crate::api::export::export_graph_endpoint;
 use crate::api::graph::{create_graph, delete_graph, get_graphs};
 use crate::api::triple::add_triple;
 use crate::api::sparql::{sparql, sparql_get};
@@ -14,6 +15,9 @@ pub fn api_router () -> Router{
                             .delete(delete_graph)
                             .get(get_graphs)
                         )
-                        .push(Router::with_path("rdf/import").post(import_pdf));
+                        .push(Router::with_path("rdf/import").post(import_pdf))
+                        .push(Router::with_path("rdf/export").get(export_graph_endpoint))
+                        ;
+                        
     router
 }
