@@ -3,3 +3,4 @@ pub mod triple;
 pub mod graph;
 pub mod import;
 pub mod export;
+pub mod sparql_update;
