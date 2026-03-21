@@ -9,7 +9,7 @@ keywords = ["web", "oxigraph", "restapi", "restfulapi", "api"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/darixsamani/oxigraph-web"
 
-categories = ["API-bindings", "Database-implementations", "Database-interfaces", "Web-programming"]
+categories = ["api-bindings", "database", "database-implementations", "web-programming", "web-programming::http-server"]
 
 [dependencies]
 
