@@ -14,3 +14,8 @@ pub struct TripleInput {
 pub struct SparqlQuery {
     pub query: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct SparqlUpdate {
+    pub query: String,
+}
