@@ -1,4 +1,4 @@
-use oxigraph::sparql::QueryResults;
+use oxigraph::sparql::{QueryResults, UpdateEvaluationError};
 use oxigraph::store::Store;
 use serde_json::json;
 
@@ -30,4 +30,8 @@ pub fn execute_query(store: &Store, query: &str ) -> serde_json::Value {
 
         _ => json!({"error": "Query execution failed"})
     }
+}
+
+pub fn execute_update(store: &Store, query: &str) -> Result<(), UpdateEvaluationError> {
+    store.update(query)
 }
