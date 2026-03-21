@@ -2,8 +2,8 @@
 
 ![Rust](https://img.shields.io/badge/rust-1.71+-orange?style=flat-square&logo=rust) 
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square) 
-![Crates.io](https://img.shields.io/crates/v/oxigraph-web?style=flat-square) 
-![Build](https://img.shields.io/github/actions/workflow/status/<your-username>/oxigraph-web/rust.yml?style=flat-square) 
+[![Crates.io](https://img.shields.io/crates/v/oxigraph-web?style=flat-square)](https://crates.io/crates/oxigraph-web) 
+![Build](https://img.shields.io/github/actions/workflow/status/darixsamani/oxigraph-web/rust.yml?branch=main&style=flat-square) 
 
 A **high-performance**, full-featured web API for [**Oxigraph**](https://github.com/oxigraph/oxigraph) – a modern Rust-based RDF/SPARQL database.  
 Provides REST endpoints, SPARQL query support, RDF import/export, graph management, and OpenAPI documentation for building scalable **semantic web applications**.  
