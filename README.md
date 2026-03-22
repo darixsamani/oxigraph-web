@@ -36,7 +36,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 Clone the repository:
 
 ```bash
-git clone https://github.com/<your-username>/oxigraph-web.git
+git clone https://github.com/darixsamani/oxigraph-web.git
 cd oxigraph-web
 cargo build --release
 ```
