@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oxigraph Web — Control Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080c10;
+      --bg1: #0d1219;
+      --bg2: #111820;
+      --bg3: #18222e;
+      --border: #1e2d3d;
+      --border2: #253545;
+      --cyan: #00e5ff;
+      --cyan-dim: #00b8cc;
+      --cyan-glow: rgba(0,229,255,0.12);
+      --green: #39ff7a;
+      --green-dim: #2acc5e;
+      --amber: #ffaa00;
+      --red: #ff4757;
+      --text: #c8d8e8;
+      --text-dim: #607080;
+      --text-bright: #e8f4ff;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Syne', sans-serif;
+      --radius: 6px;
+      --transition: 0.18s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,12,16,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 56px;
+    }
+
+    .logo {
+      font-family: var(--sans);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--cyan);
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+    }
+    .logo span { color: var(--text-dim); font-weight: 400; }
+
+    .header-sep { flex: 1; }
+
+    .base-url-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 10px;
+      transition: border-color var(--transition);
+    }
+    .base-url-wrap:focus-within { border-color: var(--cyan); }
+    .base-url-label { color: var(--text-dim); font-size: 11px; }
+    #baseUrl {
+      background: transparent;
+      border: none;
+      color: var(--text-bright);
+      font-family: var(--mono);
+      font-size: 12px;
+      width: 220px;
+      outline: none;
+    }
+
+    #healthBadge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    #healthBadge:hover { border-color: var(--cyan); }
+    .health-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: background 0.3s;
+    }
+    .health-dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .health-dot.err { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+    /* ── LAYOUT ── */
+    .shell {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ── SIDEBAR ── */
+    nav {
+      width: 210px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      padding: 0 16px 8px;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 16px;
+    }
+    .nav-section:first-child { margin-top: 0; }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 12.5px;
+      border-left: 2px solid transparent;
+      transition: all var(--transition);
+    }
+    nav a:hover { color: var(--text); background: var(--bg2); }
+    nav a.active { color: var(--cyan); border-left-color: var(--cyan); background: var(--cyan-glow); }
+    nav a .icon { font-size: 14px; width: 18px; text-align: center; }
+
+    /* ── MAIN ── */
+    main {
+      flex: 1;
+      padding: 28px 32px;
+      min-width: 0;
+    }
+
+    .panel {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 28px;
+      overflow: hidden;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+    }
+    .panel-icon { font-size: 16px; }
+    .panel-title {
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-bright);
+    }
+    .panel-subtitle { font-size: 11px; color: var(--text-dim); margin-left: auto; }
+
+    .panel-body { padding: 20px; }
+
+    /* ── FORM ELEMENTS ── */
+    label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    input[type=text], input[type=file], select, textarea {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      font-family: var(--mono);
+      font-size: 12.5px;
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+    input[type=text]:focus, select:focus, textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px var(--cyan-glow);
+    }
+    textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+    .sparql-textarea {
+      min-height: 140px;
+      font-size: 12px;
+      background: #07101a;
+      border-color: var(--border2);
+    }
+
+    select { cursor: pointer; }
+    select option { background: var(--bg2); }
+
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+
+    .row { display: flex; gap: 12px; }
+    .row .field { flex: 1; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      border-radius: var(--radius);
+      border: none;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--cyan);
+      color: #05090d;
+    }
+    .btn-primary:hover { background: #33eeff; box-shadow: 0 0 14px var(--cyan-glow); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-glow); }
+
+    .btn-danger {
+      background: transparent;
+      border: 1px solid #ff475740;
+      color: var(--red);
+    }
+    .btn-danger:hover { background: rgba(255,71,87,0.12); border-color: var(--red); }
+
+    .btn-green {
+      background: var(--green);
+      color: #05120a;
+    }
+    .btn-green:hover { background: #5fffa0; box-shadow: 0 0 14px rgba(57,255,122,0.25); }
+
+    .btn-sm { padding: 5px 12px; font-size: 11px; }
+    .btn-xs { padding: 4px 9px; font-size: 11px; }
+
+    /* ── RESULTS ── */
+    .result-box {
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #050b12;
+      overflow: hidden;
+    }
+    .result-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .result-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .status-ok { background: rgba(57,255,122,0.1); color: var(--green); border: 1px solid rgba(57,255,122,0.25); }
+    .status-err { background: rgba(255,71,87,0.1); color: var(--red); border: 1px solid rgba(255,71,87,0.25); }
+    .status-idle { background: var(--bg3); color: var(--text-dim); border: 1px solid var(--border); }
+
+    .result-body {
+      padding: 12px;
+      max-height: 380px;
+      overflow: auto;
+    }
+    .result-body pre {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ── TABLE ── */
+    .sparql-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .sparql-table th {
+      padding: 8px 12px;
+      text-align: left;
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border2);
+      color: var(--cyan);
+      font-size: 11px;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+    }
+    .sparql-table td {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .sparql-table tr:last-child td { border-bottom: none; }
+    .sparql-table tr:hover td { background: var(--bg2); }
+
+    .td-uri { color: #7dd3fc; }
+    .td-literal { color: #86efac; }
+    .td-blank { color: #e2b714; }
+
+    /* ── STAT CARDS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--bg1);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      transition: border-color var(--transition);
+    }
+    .stat-card:hover { border-color: var(--border2); }
+    .stat-label { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-family: var(--sans); font-size: 26px; font-weight: 700; color: var(--text-bright); }
+    .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+    .tab {
+      padding: 9px 16px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition);
+      border-radius: 4px 4px 0 0;
+    }
+    .tab:hover { color: var(--text); background: var(--bg2); }
+    .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); background: var(--cyan-glow); }
+
+    /* ── LOADING ── */
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid var(--border2);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── GRAPHS LIST ── */
+    .graph-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .graph-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color var(--transition);
+    }
+    .graph-item:hover { border-color: var(--border2); }
+    .graph-name { flex: 1; font-size: 12px; color: var(--cyan-dim); word-break: break-all; }
+    .graph-default { font-size: 10px; color: var(--text-dim); padding: 2px 7px; border-radius: 10px; background: var(--bg3); border: 1px solid var(--border); }
+
+    /* ── TOAST ── */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      border: 1px solid;
+      animation: slideIn 0.2s ease;
+      min-width: 240px;
+      backdrop-filter: blur(12px);
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    .toast-ok { background: rgba(57,255,122,0.08); border-color: rgba(57,255,122,0.3); color: var(--green); }
+    .toast-err { background: rgba(255,71,87,0.08); border-color: rgba(255,71,87,0.3); color: var(--red); }
+    .toast-info { background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.3); color: var(--cyan); }
+
+    /* ── METHOD BADGE ── */
+    .method {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .method-get { background: rgba(57,255,122,0.1); color: var(--green); border: 1px solid rgba(57,255,122,0.2); }
+    .method-post { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+    .method-delete { background: rgba(255,71,87,0.1); color: var(--red); border: 1px solid rgba(255,71,87,0.2); }
+
+    /* ── ENDPOINT PATH ── */
+    .endpoint-path { color: var(--text-dim); font-size: 11px; }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-family: var(--sans);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+    .section-title span { color: var(--cyan); }
+
+    /* ── HIDDEN ── */
+    .hidden { display: none !important; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ── INPUT FILE LABEL ── */
+    .file-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: var(--bg2);
+      border: 1px dashed var(--border2);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+    .file-input-wrap:hover { border-color: var(--cyan); }
+    .file-input-wrap input[type=file] { display: none; }
+    .file-name { color: var(--text-dim); font-size: 12px; }
+
+    @media (max-width: 900px) {
+      nav { width: 52px; }
+      nav a span { display: none; }
+      .nav-section { display: none; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      main { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">⬡ Oxigraph<span>-web</span></div>
+  <div class="header-sep"></div>
+  <div class="base-url-wrap">
+    <span class="base-url-label">HOST</span>
+    <input type="text" id="baseUrl" value="http://localhost:8080" placeholder="http://localhost:8080" />
+  </div>
+  <button id="healthBadge" onclick="checkHealth()">
+    <div class="health-dot" id="healthDot"></div>
+    <span id="healthText">Check health</span>
+  </button>
+</header>
+
+<div class="shell">
+  <nav id="sideNav">
+    <div class="nav-section">Overview</div>
+    <a href="#" class="active" data-view="dashboard" onclick="showView('dashboard',this)">
+      <span class="icon">⬡</span><span>Dashboard</span>
+    </a>
+
+    <div class="nav-section">Query</div>
+    <a href="#" data-view="sparql" onclick="showView('sparql',this)">
+      <span class="icon">◎</span><span>SPARQL Query</span>
+    </a>
+    <a href="#" data-view="update" onclick="showView('update',this)">
+      <span class="icon">✎</span><span>SPARQL Update</span>
+    </a>
+
+    <div class="nav-section">Data</div>
+    <a href="#" data-view="triples" onclick="showView('triples',this)">
+      <span class="icon">◈</span><span>Triples</span>
+    </a>
+    <a href="#" data-view="graphs" onclick="showView('graphs',this)">
+      <span class="icon">⬡</span><span>Graphs</span>
+    </a>
+
+    <div class="nav-section">Import / Export</div>
+    <a href="#" data-view="import" onclick="showView('import',this)">
+      <span class="icon">↓</span><span>Import RDF</span>
+    </a>
+    <a href="#" data-view="export" onclick="showView('export',this)">
+      <span class="icon">↑</span><span>Export RDF</span>
+    </a>
+  </nav>
+
+  <main>
+
+    <!-- ══════════════════ DASHBOARD ══════════════════ -->
+    <div id="view-dashboard">
+      <div class="section-title">⬡ Oxigraph<span>-web</span> Control Panel</div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Status</div>
+          <div class="stat-value" id="dashStatus" style="font-size:18px;color:var(--text-dim)">—</div>
+          <div class="stat-sub">Server health</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Endpoint</div>
+          <div class="stat-value" style="font-size:14px;color:var(--cyan-dim)" id="dashEndpoint">localhost:8080</div>
+          <div class="stat-sub">Base URL</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">API</div>
+          <div class="stat-value">8</div>
+          <div class="stat-sub">Endpoints available</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Formats</div>
+          <div class="stat-value">3</div>
+          <div class="stat-sub">Turtle · N-Triples · RDF/XML</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">📖</span>
+          <span class="panel-title">API Reference</span>
+          <span class="panel-subtitle">All available endpoints</span>
+        </div>
+        <div class="panel-body">
+          <table class="sparql-table">
+            <thead>
+              <tr><th>Method</th><th>Path</th><th>Description</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="method method-get">GET</span></td>
+                <td class="endpoint-path">/health</td>
+                <td>Server health check</td>
+                <td><button class="btn btn-outline btn-xs" onclick="checkHealth();showView('dashboard',document.querySelector('[data-view=dashboard]'))">Run</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-post">POST</span></td>
+                <td class="endpoint-path">/triples</td>
+                <td>Insert a triple</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('triples',document.querySelector('[data-view=triples]'))">Open</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-post">POST</span></td>
+                <td class="endpoint-path">/sparql</td>
+                <td>SPARQL query (POST)</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('sparql',document.querySelector('[data-view=sparql]'))">Open</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-get">GET</span></td>
+                <td class="endpoint-path">/sparql?query=</td>
+                <td>SPARQL query (GET)</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('sparql',document.querySelector('[data-view=sparql]'))">Open</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-post">POST</span></td>
+                <td class="endpoint-path">/sparql/update</td>
+                <td>SPARQL update</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('update',document.querySelector('[data-view=update]'))">Open</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-post">POST</span> <span class="method method-delete">DELETE</span></td>
+                <td class="endpoint-path">/graphs</td>
+                <td>Create / delete named graphs</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('graphs',document.querySelector('[data-view=graphs]'))">Open</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-post">POST</span></td>
+                <td class="endpoint-path">/rdf/import</td>
+                <td>Import RDF data</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('import',document.querySelector('[data-view=import]'))">Open</button></td>
+              </tr>
+              <tr>
+                <td><span class="method method-get">GET</span></td>
+                <td class="endpoint-path">/rdf/export</td>
+                <td>Export RDF data</td>
+                <td><button class="btn btn-outline btn-xs" onclick="showView('export',document.querySelector('[data-view=export]'))">Open</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">⚡</span>
+          <span class="panel-title">Quick Actions</span>
+        </div>
+        <div class="panel-body" style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" onclick="showView('sparql',document.querySelector('[data-view=sparql]'));setQuery('SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 100')">◎ List all triples</button>
+          <button class="btn btn-outline" onclick="showView('sparql',document.querySelector('[data-view=sparql]'));setQuery('SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o }')">◎ Count triples</button>
+          <button class="btn btn-outline" onclick="showView('export',document.querySelector('[data-view=export]'))">↑ Export all (Turtle)</button>
+          <button class="btn btn-outline" onclick="checkHealth()">✓ Ping server</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ SPARQL QUERY ══════════════════ -->
+    <div id="view-sparql" class="hidden">
+      <div class="section-title">◎ SPARQL <span>Query</span></div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="setSparqlMethod('post',this)" id="tab-post">POST /sparql</div>
+        <div class="tab" onclick="setSparqlMethod('get',this)" id="tab-get">GET /sparql?query=</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">◎</span>
+          <span class="panel-title">Query Editor</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="clearSparqlResult()">Clear</button>
+            <button class="btn btn-primary btn-sm" onclick="runSparqlQuery()" id="btnRunSparql">▶ Run Query</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label>SPARQL Query</label>
+            <textarea class="sparql-textarea" id="sparqlQuery" spellcheck="false">SELECT ?s ?p ?o WHERE {
+  ?s ?p ?o
+} LIMIT 25</textarea>
+          </div>
+
+          <div id="sparqlResult" class="result-box hidden">
+            <div class="result-head">
+              <span id="sparqlResultStatus" class="result-status status-idle">IDLE</span>
+              <span id="sparqlResultMeta" style="margin-left:auto;color:var(--text-dim)"></span>
+            </div>
+            <div class="result-body" id="sparqlResultBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ SPARQL UPDATE ══════════════════ -->
+    <div id="view-update" class="hidden">
+      <div class="section-title">✎ SPARQL <span>Update</span></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">✎</span>
+          <span class="panel-title">Update Editor</span>
+          <span class="panel-subtitle">POST /sparql/update</span>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="clearUpdateResult()">Clear</button>
+            <button class="btn btn-primary btn-sm" onclick="runSparqlUpdate()">▶ Execute</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+            <button class="btn btn-outline btn-xs" onclick="setUpdateTemplate('insert')">INSERT DATA</button>
+            <button class="btn btn-outline btn-xs" onclick="setUpdateTemplate('delete')">DELETE DATA</button>
+            <button class="btn btn-outline btn-xs" onclick="setUpdateTemplate('insert_where')">INSERT WHERE</button>
+            <button class="btn btn-outline btn-xs" onclick="setUpdateTemplate('clear')">CLEAR GRAPH</button>
+          </div>
+          <div class="field">
+            <label>SPARQL Update</label>
+            <textarea class="sparql-textarea" id="sparqlUpdate" spellcheck="false" style="min-height:160px">INSERT DATA {
+  <http://example.com/subject>
+    <http://xmlns.com/foaf/0.1/name> "Alice" .
+}</textarea>
+          </div>
+          <div id="updateResult" class="result-box hidden">
+            <div class="result-head">
+              <span id="updateResultStatus" class="result-status status-idle">IDLE</span>
+              <span id="updateResultMeta" style="margin-left:auto;color:var(--text-dim)"></span>
+            </div>
+            <div class="result-body" id="updateResultBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ TRIPLES ══════════════════ -->
+    <div id="view-triples" class="hidden">
+      <div class="section-title">◈ <span>Triples</span></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">◈</span>
+          <span class="panel-title">Insert Triple</span>
+          <span class="panel-subtitle">POST /triples</span>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="field">
+              <label>Subject (URI)</label>
+              <input type="text" id="tripleSubject" placeholder="http://example.com/alice" />
+            </div>
+            <div class="field">
+              <label>Predicate (URI)</label>
+              <input type="text" id="triplePredicate" placeholder="http://xmlns.com/foaf/0.1/name" />
+            </div>
+          </div>
+          <div class="row" style="align-items:flex-end">
+            <div class="field">
+              <label>Object (URI or Literal)</label>
+              <input type="text" id="tripleObject" placeholder="http://example.com/Alice  or  &quot;Alice&quot;" />
+            </div>
+            <div class="field" style="flex:0 0 180px">
+              <label>Graph (optional)</label>
+              <input type="text" id="tripleGraph" placeholder="http://example.com/graph1" />
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-outline btn-sm" onclick="fillTripleExample()">Use example</button>
+            <button class="btn btn-primary" onclick="insertTriple()">◈ Insert Triple</button>
+          </div>
+          <div id="tripleResult" class="result-box hidden">
+            <div class="result-head">
+              <span id="tripleResultStatus" class="result-status status-idle">IDLE</span>
+            </div>
+            <div class="result-body" id="tripleResultBody"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">◎</span>
+          <span class="panel-title">Browse Triples</span>
+          <div style="margin-left:auto">
+            <button class="btn btn-outline btn-sm" onclick="browseTriples()">◎ Load all triples</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="browseResult" class="result-box hidden">
+            <div class="result-head">
+              <span id="browseResultStatus" class="result-status status-idle">IDLE</span>
+              <span id="browseResultMeta" style="margin-left:auto;color:var(--text-dim)"></span>
+            </div>
+            <div class="result-body" id="browseResultBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ GRAPHS ══════════════════ -->
+    <div id="view-graphs" class="hidden">
+      <div class="section-title">⬡ Named <span>Graphs</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-icon">+</span>
+            <span class="panel-title">Create Graph</span>
+            <span class="panel-subtitle">POST /graphs</span>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Graph URI</label>
+              <input type="text" id="createGraphUri" placeholder="http://example.com/graph1" />
+            </div>
+            <button class="btn btn-primary" onclick="createGraph()">+ Create Graph</button>
+            <div id="createGraphResult" class="result-box hidden">
+              <div class="result-head"><span id="createGraphStatus" class="result-status status-idle">IDLE</span></div>
+              <div class="result-body" id="createGraphBody"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-icon">✕</span>
+            <span class="panel-title">Delete Graph</span>
+            <span class="panel-subtitle">DELETE /graphs</span>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Graph URI</label>
+              <input type="text" id="deleteGraphUri" placeholder="http://example.com/graph1" />
+            </div>
+            <button class="btn btn-danger" onclick="deleteGraph()">✕ Delete Graph</button>
+            <div id="deleteGraphResult" class="result-box hidden">
+              <div class="result-head"><span id="deleteGraphStatus" class="result-status status-idle">IDLE</span></div>
+              <div class="result-body" id="deleteGraphBody"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">⬡</span>
+          <span class="panel-title">List Named Graphs</span>
+          <div style="margin-left:auto">
+            <button class="btn btn-outline btn-sm" onclick="listGraphs()">⬡ Load graphs</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="graphListResult" class="result-box hidden">
+            <div class="result-head"><span id="graphListStatus" class="result-status status-idle">IDLE</span></div>
+            <div class="result-body" id="graphListBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ IMPORT ══════════════════ -->
+    <div id="view-import" class="hidden">
+      <div class="section-title">↓ Import <span>RDF</span></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">↓</span>
+          <span class="panel-title">Import RDF Data</span>
+          <span class="panel-subtitle">POST /rdf/import</span>
+        </div>
+        <div class="panel-body">
+          <div class="tabs" style="margin-bottom:16px">
+            <div class="tab active" onclick="setImportMode('file',this)">Upload File</div>
+            <div class="tab" onclick="setImportMode('text',this)">Paste RDF</div>
+          </div>
+
+          <div id="importFileMode">
+            <div class="field">
+              <label>RDF File</label>
+              <label class="file-input-wrap">
+                <input type="file" id="importFile" accept=".ttl,.nt,.rdf,.xml" onchange="updateFileName(this)" />
+                <span>📂</span>
+                <span class="file-name" id="importFileName">Choose file (.ttl, .nt, .rdf, .xml)</span>
+              </label>
+            </div>
+          </div>
+          <div id="importTextMode" class="hidden">
+            <div class="field">
+              <label>RDF Content</label>
+              <textarea class="sparql-textarea" id="importText" spellcheck="false" placeholder="@prefix ex: &lt;http://example.com/&gt; .
+ex:alice foaf:name &quot;Alice&quot; ."></textarea>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:14px">
+            <div class="field">
+              <label>Format</label>
+              <select id="importFormat">
+                <option value="ttl">Turtle (.ttl)</option>
+                <option value="nt">N-Triples (.nt)</option>
+                <option value="rdf">RDF/XML (.rdf)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Target Graph (optional)</label>
+              <input type="text" id="importGraph" placeholder="http://example.com/graph1" />
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top:8px" onclick="importRDF()">↓ Import</button>
+
+          <div id="importResult" class="result-box hidden">
+            <div class="result-head">
+              <span id="importResultStatus" class="result-status status-idle">IDLE</span>
+              <span id="importResultMeta" style="margin-left:auto;color:var(--text-dim)"></span>
+            </div>
+            <div class="result-body" id="importResultBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ EXPORT ══════════════════ -->
+    <div id="view-export" class="hidden">
+      <div class="section-title">↑ Export <span>RDF</span></div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <span class="panel-icon">↑</span>
+          <span class="panel-title">Export RDF Data</span>
+          <span class="panel-subtitle">GET /rdf/export</span>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="field">
+              <label>Format</label>
+              <select id="exportFormat">
+                <option value="ttl">Turtle (.ttl)</option>
+                <option value="nt">N-Triples (.nt)</option>
+                <option value="rdf">RDF/XML (.rdf)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Graph (optional)</label>
+              <input type="text" id="exportGraph" placeholder="http://example.com/graph1 (leave blank for all)" />
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <button class="btn btn-primary" onclick="exportRDF(false)">↑ Export &amp; Preview</button>
+            <button class="btn btn-green" onclick="exportRDF(true)">⬇ Download</button>
+          </div>
+
+          <div id="exportResult" class="result-box hidden">
+            <div class="result-head">
+              <span id="exportResultStatus" class="result-status status-idle">IDLE</span>
+              <span id="exportResultMeta" style="margin-left:auto;color:var(--text-dim)"></span>
+            </div>
+            <div class="result-body" id="exportResultBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast container -->
+<div id="toastContainer"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let sparqlMethod = 'post';
+let importMode = 'file';
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const base = () => document.getElementById('baseUrl').value.replace(/\/$/, '');
+const $ = id => document.getElementById(id);
+
+function showView(name, link) {
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
+  $('view-' + name).classList.remove('hidden');
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  if (link) link.classList.add('active');
+  return false;
+}
+
+function toast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  $('toastContainer').appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function setResult(prefix, ok, body, meta = '') {
+  const box = $(prefix + 'Result');
+  const status = $(prefix + 'ResultStatus') || $(prefix + 'Status');
+  const bodyEl = $(prefix + 'ResultBody') || $(prefix + 'Body');
+  const metaEl = $(prefix + 'ResultMeta') || $(prefix + 'Meta');
+
+  if (box) box.classList.remove('hidden');
+  if (status) {
+    status.className = 'result-status ' + (ok ? 'status-ok' : 'status-err');
+    status.textContent = ok ? '200 OK' : 'ERROR';
+  }
+  if (bodyEl) bodyEl.innerHTML = body;
+  if (metaEl && meta) metaEl.textContent = meta;
+}
+
+function setLoading(prefix) {
+  const box = $(prefix + 'Result');
+  const status = $(prefix + 'ResultStatus') || $(prefix + 'Status');
+  const bodyEl = $(prefix + 'ResultBody') || $(prefix + 'Body');
+
+  if (box) box.classList.remove('hidden');
+  if (status) { status.className = 'result-status status-idle'; status.textContent = 'LOADING'; }
+  if (bodyEl) bodyEl.innerHTML = '<span class="spinner"></span> Fetching...';
+}
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(base() + path, {
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts,
+  });
+  const text = await res.text();
+  return { ok: res.ok, status: res.status, text, json: (() => { try { return JSON.parse(text); } catch { return null; } })() };
+}
+
+// ── Health ─────────────────────────────────────────────────────────────────
+async function checkHealth() {
+  const dot = $('healthDot');
+  const txt = $('healthText');
+  txt.textContent = 'Checking…';
+  try {
+    const r = await fetch(base() + '/health');
+    if (r.ok) {
+      dot.className = 'health-dot ok';
+      txt.textContent = 'Healthy';
+      $('dashStatus').textContent = '✓ Healthy';
+      $('dashStatus').style.color = 'var(--green)';
+      toast('Server is healthy', 'ok');
+    } else {
+      throw new Error(r.status);
+    }
+  } catch {
+    dot.className = 'health-dot err';
+    txt.textContent = 'Unreachable';
+    $('dashStatus').textContent = '✕ Down';
+    $('dashStatus').style.color = 'var(--red)';
+    toast('Cannot reach server', 'err');
+  }
+  $('dashEndpoint').textContent = $('baseUrl').value.replace(/https?:\/\//, '');
+}
+
+// ── SPARQL Query ───────────────────────────────────────────────────────────
+function setSparqlMethod(m, el) {
+  sparqlMethod = m;
+  document.querySelectorAll('#view-sparql .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function clearSparqlResult() {
+  $('sparqlResult').classList.add('hidden');
+}
+
+function setQuery(q) {
+  $('sparqlQuery').value = q;
+}
+
+function renderSparqlResults(json) {
+  if (!json || !json.results) return `<pre>${JSON.stringify(json, null, 2)}</pre>`;
+  const vars = json.head?.vars || [];
+  const rows = json.results?.bindings || [];
+  if (!rows.length) return '<em style="color:var(--text-dim)">No results</em>';
+  let html = `<table class="sparql-table"><thead><tr>${vars.map(v => `<th>${v}</th>`).join('')}</tr></thead><tbody>`;
+  for (const row of rows) {
+    html += '<tr>';
+    for (const v of vars) {
+      const cell = row[v];
+      if (!cell) { html += '<td><span style="color:var(--text-dim)">—</span></td>'; continue; }
+      if (cell.type === 'uri') html += `<td class="td-uri" title="${cell.value}">&lt;${truncate(cell.value, 60)}&gt;</td>`;
+      else if (cell.type === 'literal') html += `<td class="td-literal">"${escH(truncate(cell.value, 80))}"</td>`;
+      else html += `<td class="td-blank">_:${escH(cell.value)}</td>`;
+    }
+    html += '</tr>';
+  }
+  return html + '</tbody></table>';
+}
+
+function truncate(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
+function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function runSparqlQuery() {
+  const q = $('sparqlQuery').value.trim();
+  if (!q) { toast('Enter a SPARQL query', 'err'); return; }
+  setLoading('sparql');
+  const t0 = Date.now();
+  try {
+    let r;
+    if (sparqlMethod === 'post') {
+      r = await apiFetch('/sparql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q })
+      });
+    } else {
+      r = await apiFetch('/sparql?query=' + encodeURIComponent(q), { method: 'GET', headers: {} });
+    }
+    const elapsed = Date.now() - t0;
+    const rows = r.json?.results?.bindings?.length ?? '?';
+    setResult('sparql', r.ok, r.ok ? renderSparqlResults(r.json) : `<pre>${escH(r.text)}</pre>`, `${rows} rows · ${elapsed}ms`);
+    if (r.ok) toast(`Query returned ${rows} rows`, 'ok');
+    else toast('Query failed', 'err');
+  } catch (e) {
+    setResult('sparql', false, `<pre>${escH(e.message)}</pre>`);
+    toast('Network error', 'err');
+  }
+}
+
+// ── SPARQL Update ──────────────────────────────────────────────────────────
+const updateTemplates = {
+  insert: `INSERT DATA {\n  <http://example.com/subject>\n    <http://xmlns.com/foaf/0.1/name> "Alice" .\n}`,
+  delete: `DELETE DATA {\n  <http://example.com/subject>\n    <http://xmlns.com/foaf/0.1/name> "Alice" .\n}`,
+  insert_where: `INSERT {\n  ?s <http://example.com/processed> true .\n}\nWHERE {\n  ?s <http://xmlns.com/foaf/0.1/name> ?name .\n}`,
+  clear: `CLEAR GRAPH <http://example.com/graph1>`
+};
+
+function setUpdateTemplate(t) { $('sparqlUpdate').value = updateTemplates[t]; }
+function clearUpdateResult() { $('updateResult').classList.add('hidden'); }
+
+async function runSparqlUpdate() {
+  const u = $('sparqlUpdate').value.trim();
+  if (!u) { toast('Enter a SPARQL Update', 'err'); return; }
+  setLoading('update');
+  try {
+    const r = await apiFetch('/sparql/update', {
+      method: 'POST',
+      body: JSON.stringify({ update: u })
+    });
+    setResult('update', r.ok, `<pre>${escH(r.text || (r.ok ? 'Update executed successfully.' : 'Error'))}</pre>`);
+    toast(r.ok ? 'Update executed' : 'Update failed', r.ok ? 'ok' : 'err');
+  } catch (e) {
+    setResult('update', false, `<pre>${escH(e.message)}</pre>`);
+    toast('Network error', 'err');
+  }
+}
+
+// ── Triples ────────────────────────────────────────────────────────────────
+function fillTripleExample() {
+  $('tripleSubject').value = 'http://example.com/alice';
+  $('triplePredicate').value = 'http://xmlns.com/foaf/0.1/name';
+  $('tripleObject').value = 'http://example.com/Alice';
+}
+
+async function insertTriple() {
+  const s = $('tripleSubject').value.trim();
+  const p = $('triplePredicate').value.trim();
+  const o = $('tripleObject').value.trim();
+  if (!s || !p || !o) { toast('Subject, predicate and object are required', 'err'); return; }
+  setLoading('triple');
+  const payload = { subject: s, predicate: p, object: o };
+  const g = $('tripleGraph').value.trim();
+  if (g) payload.graph = g;
+  try {
+    const r = await apiFetch('/triples', { method: 'POST', body: JSON.stringify(payload) });
+    setResult('triple', r.ok, `<pre>${escH(r.text || (r.ok ? 'Triple inserted.' : 'Error'))}</pre>`);
+    toast(r.ok ? 'Triple inserted' : 'Insert failed', r.ok ? 'ok' : 'err');
+  } catch (e) {
+    setResult('triple', false, `<pre>${escH(e.message)}</pre>`);
+    toast('Network error', 'err');
+  }
+}
+
+async function browseTriples() {
+  $('browseResult').classList.remove('hidden');
+  const bStatus = $('browseResultStatus');
+  const bBody = $('browseResultBody');
+  bStatus.className = 'result-status status-idle'; bStatus.textContent = 'LOADING';
+  bBody.innerHTML = '<span class="spinner"></span> Loading…';
+  try {
+    const r = await apiFetch('/sparql', {
+      method: 'POST',
+      body: JSON.stringify({ query: 'SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 200' })
+    });
+    const rows = r.json?.results?.bindings?.length ?? '?';
+    bStatus.className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
+    bStatus.textContent = r.ok ? '200 OK' : 'ERROR';
+    $('browseResultMeta').textContent = `${rows} triples`;
+    bBody.innerHTML = r.ok ? renderSparqlResults(r.json) : `<pre>${escH(r.text)}</pre>`;
+  } catch (e) {
+    bStatus.className = 'result-status status-err'; bStatus.textContent = 'ERROR';
+    bBody.innerHTML = `<pre>${escH(e.message)}</pre>`;
+  }
+}
+
+// ── Graphs ─────────────────────────────────────────────────────────────────
+async function createGraph() {
+  const uri = $('createGraphUri').value.trim();
+  if (!uri) { toast('Enter a graph URI', 'err'); return; }
+  $('createGraphResult').classList.remove('hidden');
+  $('createGraphStatus').className = 'result-status status-idle'; $('createGraphStatus').textContent = 'LOADING';
+  $('createGraphBody').innerHTML = '<span class="spinner"></span>';
+  try {
+    const r = await apiFetch('/graphs', { method: 'POST', body: JSON.stringify({ graph: uri }) });
+    $('createGraphStatus').className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
+    $('createGraphStatus').textContent = r.ok ? '200 OK' : 'ERROR';
+    $('createGraphBody').innerHTML = `<pre>${escH(r.text || (r.ok ? 'Graph created.' : 'Error'))}</pre>`;
+    toast(r.ok ? 'Graph created' : 'Failed', r.ok ? 'ok' : 'err');
+  } catch (e) {
+    $('createGraphStatus').className = 'result-status status-err'; $('createGraphStatus').textContent = 'ERROR';
+    $('createGraphBody').innerHTML = `<pre>${escH(e.message)}</pre>`;
+  }
+}
+
+async function deleteGraph() {
+  const uri = $('deleteGraphUri').value.trim();
+  if (!uri) { toast('Enter a graph URI', 'err'); return; }
+  if (!confirm(`Delete graph: ${uri}?`)) return;
+  $('deleteGraphResult').classList.remove('hidden');
+  $('deleteGraphStatus').className = 'result-status status-idle'; $('deleteGraphStatus').textContent = 'LOADING';
+  $('deleteGraphBody').innerHTML = '<span class="spinner"></span>';
+  try {
+    const r = await apiFetch('/graphs', { method: 'DELETE', body: JSON.stringify({ graph: uri }) });
+    $('deleteGraphStatus').className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
+    $('deleteGraphStatus').textContent = r.ok ? '200 OK' : 'ERROR';
+    $('deleteGraphBody').innerHTML = `<pre>${escH(r.text || (r.ok ? 'Graph deleted.' : 'Error'))}</pre>`;
+    toast(r.ok ? 'Graph deleted' : 'Failed', r.ok ? 'ok' : 'err');
+  } catch (e) {
+    $('deleteGraphStatus').className = 'result-status status-err'; $('deleteGraphStatus').textContent = 'ERROR';
+    $('deleteGraphBody').innerHTML = `<pre>${escH(e.message)}</pre>`;
+  }
+}
+
+async function listGraphs() {
+  $('graphListResult').classList.remove('hidden');
+  $('graphListStatus').className = 'result-status status-idle'; $('graphListStatus').textContent = 'LOADING';
+  $('graphListBody').innerHTML = '<span class="spinner"></span>';
+  try {
+    const r = await apiFetch('/sparql', {
+      method: 'POST',
+      body: JSON.stringify({ query: 'SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }' })
+    });
+    $('graphListStatus').className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
+    $('graphListStatus').textContent = r.ok ? '200 OK' : 'ERROR';
+    if (r.ok && r.json?.results?.bindings) {
+      const graphs = r.json.results.bindings;
+      if (!graphs.length) {
+        $('graphListBody').innerHTML = '<em style="color:var(--text-dim)">No named graphs found</em>';
+      } else {
+        $('graphListBody').innerHTML = graphs.map(g =>
+          `<div class="graph-item"><span class="graph-name">&lt;${escH(g.g?.value || '')}&gt;</span></div>`
+        ).join('');
+      }
+    } else {
+      $('graphListBody').innerHTML = `<pre>${escH(r.text)}</pre>`;
+    }
+  } catch (e) {
+    $('graphListStatus').className = 'result-status status-err'; $('graphListStatus').textContent = 'ERROR';
+    $('graphListBody').innerHTML = `<pre>${escH(e.message)}</pre>`;
+  }
+}
+
+// ── Import ─────────────────────────────────────────────────────────────────
+function setImportMode(mode, el) {
+  importMode = mode;
+  document.querySelectorAll('#view-import .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  $('importFileMode').classList.toggle('hidden', mode !== 'file');
+  $('importTextMode').classList.toggle('hidden', mode !== 'text');
+}
+
+function updateFileName(input) {
+  $('importFileName').textContent = input.files[0]?.name || 'Choose file';
+  const ext = input.files[0]?.name.split('.').pop().toLowerCase();
+  const map = { ttl: 'ttl', nt: 'nt', rdf: 'rdf', xml: 'rdf' };
+  if (map[ext]) $('importFormat').value = map[ext];
+}
+
+async function importRDF() {
+  const format = $('importFormat').value;
+  const graph = $('importGraph').value.trim();
+  setLoading('import');
+  try {
+    let body, headers = {};
+    if (importMode === 'file') {
+      const file = $('importFile').files[0];
+      if (!file) { toast('Select a file first', 'err'); $('importResult').classList.add('hidden'); return; }
+      body = await file.text();
+    } else {
+      body = $('importText').value.trim();
+      if (!body) { toast('Paste some RDF content', 'err'); $('importResult').classList.add('hidden'); return; }
+    }
+    const contentTypeMap = { ttl: 'text/turtle', nt: 'application/n-triples', rdf: 'application/rdf+xml' };
+    headers['Content-Type'] = contentTypeMap[format] || 'text/turtle';
+
+    let url = '/rdf/import?format=' + format;
+    if (graph) url += '&graph=' + encodeURIComponent(graph);
+
+    const res = await fetch(base() + url, { method: 'POST', headers, body });
+    const text = await res.text();
+    setResult('import', res.ok, `<pre>${escH(text || (res.ok ? 'Import successful.' : 'Import failed.'))}</pre>`, `Format: ${format}`);
+    toast(res.ok ? 'Import successful' : 'Import failed', res.ok ? 'ok' : 'err');
+  } catch (e) {
+    setResult('import', false, `<pre>${escH(e.message)}</pre>`);
+    toast('Network error', 'err');
+  }
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────
+async function exportRDF(download = false) {
+  const format = $('exportFormat').value;
+  const graph = $('exportGraph').value.trim();
+  let url = base() + '/rdf/export?format=' + format;
+  if (graph) url += '&graph=' + encodeURIComponent(graph);
+
+  if (download) {
+    const a = document.createElement('a');
+    a.href = url; a.download = `export.${format}`; a.click();
+    toast('Download started', 'ok');
+    return;
+  }
+
+  setLoading('export');
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    setResult('export', res.ok, `<pre>${escH(text)}</pre>`, `Format: ${format} · ${text.length} chars`);
+    toast(res.ok ? 'Export successful' : 'Export failed', res.ok ? 'ok' : 'err');
+  } catch (e) {
+    setResult('export', false, `<pre>${escH(e.message)}</pre>`);
+    toast('Network error', 'err');
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+checkHealth();
+</script>
+</body>
+</html>
