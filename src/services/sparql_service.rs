@@ -1,34 +1,34 @@
-use oxigraph::sparql::{QueryResults, UpdateEvaluationError};
+use oxigraph::sparql::{QueryResults, UpdateEvaluationError, SparqlEvaluator};
 use oxigraph::store::Store;
 use serde_json::json;
 
 
-#[allow(deprecated)]
-pub fn execute_query(store: &Store, query: &str ) -> serde_json::Value {
-    match store.query(query) {
+pub fn execute_query(store: &Store, query: &str) -> serde_json::Value {
+    let parse_result = SparqlEvaluator::new().parse_query(query);
 
-        Ok(QueryResults::Solutions(solutions)) =>{
-
-            let mut rows = Vec::new();
-            for solution in solutions {
-                let solution = solution.unwrap();
-                let mut row = serde_json::Map::new();
-                for (var, value) in solution.iter() {
-                    row.insert(
-                        var.to_string(),
-                        json!(value.to_string())
-                    );
-                rows.push(json!(row));
-                }       
+    match parse_result {
+        Ok(query_obj) => {
+            match query_obj.on_store(store).execute() {
+                Ok(QueryResults::Solutions(solutions)) => {
+                    let mut rows = Vec::new();
+                    for solution in solutions {
+                        let solution = solution.unwrap();
+                        let mut row = serde_json::Map::new();
+                        for (var, value) in solution.iter() {
+                            row.insert(var.to_string(), json!(value.to_string()));
+                        }
+                        rows.push(json!(row));
+                    }
+                    json!(rows)
+                }
+                Ok(QueryResults::Boolean(result)) => {
+                    json!({"boolean": result})
+                }
+                Ok(_) => json!({"error": "Unsupported query result type"}),
+                Err(e) => json!({"error": format!("Query execution failed: {}", e)}),
+            }
         }
-            json!(rows)
-        },
-
-        Ok(QueryResults::Boolean(result)) => {
-            json!({"boolean": result})
-        },
-
-        _ => json!({"error": "Query execution failed"})
+        Err(e) => json!({"error": format!("Query parsing failed: {}", e)}),
     }
 }
 
