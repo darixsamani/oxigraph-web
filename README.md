@@ -61,6 +61,7 @@ http://localhost:8080
 | `sparql/update`  | POST          | SPQRQL update query
 | `/sparql?query=` | GET           | SPARQL query via URL                         |
 | `/graphs`        | POST / DELETE | Create or delete named graphs                |
+| `/graphs`        | GET           | Get list of named graphs                |
 | `/rdf/import`    | POST          | Import RDF data (Turtle, N-Triples, RDF/XML) |
 | `/rdf/export`    | GET           | Export RDF data in selected format           |
 | `/docs`          | GET           | OpenAPI / Swagger UI                         |
