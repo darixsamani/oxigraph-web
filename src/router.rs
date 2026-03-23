@@ -1,6 +1,8 @@
 use salvo::Router;
+use salvo::serve_static::StaticDir;
 use crate::api::export::export_graph_endpoint;
 use crate::api::graph::{create_graph, delete_graph, get_graphs};
+use crate::api::health::health;
 use crate::api::sparql_update;
 use crate::api::triple::add_triple;
 use crate::api::sparql::{sparql, sparql_get};
@@ -8,6 +10,7 @@ use crate::api::import::import_pdf;
 
 pub fn api_router () -> Router{
     let router = Router::new()
+                        .push(Router::with_path("health").get(health))
                         .push(Router::with_path("triples").post(add_triple))
                         .push(Router::with_path("sparql").post(sparql).get(sparql_get))
                         .push(
@@ -19,6 +22,12 @@ pub fn api_router () -> Router{
                         .push(Router::with_path("rdf/import").post(import_pdf))
                         .push(Router::with_path("rdf/export").get(export_graph_endpoint))
                         .push(Router::with_path("sparql/update").post(sparql_update::sparql_update_endpoint))
+                        .push(
+                        Router::with_path("{*path}")
+                                .get(StaticDir::new(["static"])
+                                .defaults("index.html")
+                                .auto_list(false))
+    )
                         ;
                         
     router
