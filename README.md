@@ -101,3 +101,5 @@ curl -X GET "http://localhost:8080/rdf/export?format=ttl"
 
 This project is licensed under the MIT License. See the LICENSE
  file for details.
+
+ Made with ❤️ [darixsamani](https://github.com/darixsamani)
