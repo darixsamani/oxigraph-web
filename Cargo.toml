@@ -14,7 +14,7 @@ categories = ["api-bindings", "database", "database-implementations", "web-progr
 [dependencies]
 
 serde_json = "1.0.149"
-salvo = { version = "0.89.2", features = ["oapi", "affix-state", "anyhow", "jwt-auth", "test", "cors"] }
+salvo = { version = "0.89.2", features = ["oapi", "affix-state", "anyhow", "jwt-auth", "test", "cors", "serve-static"] }
 salvo-oapi = { version = "0.89.2", features = ["swagger-ui"] }
 serde = { version = "1.0.228", features = ["derive"] }
 
