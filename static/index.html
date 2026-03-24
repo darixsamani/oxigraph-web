@@ -1149,7 +1149,7 @@ async function runSparqlQuery() {
     }
     const elapsed = Date.now() - t0;
     const rows = Array.isArray(r.json) ? r.json.length : (r.json?.results?.bindings?.length ?? '?');
-    // console.log("result", r.json);
+    console.log("result", r.json);
     setResult('sparql', r.ok, r.ok ? renderSparqlResults(r.json) : `<pre>${escH(r.text)}</pre>`, `${rows} rows · ${elapsed}ms`);
     if (r.ok) toast(`Query returned ${rows} rows`, 'ok');
     else toast('Query failed', 'err');
@@ -1177,7 +1177,7 @@ async function runSparqlUpdate() {
   try {
     const r = await apiFetch('/sparql/update', {
       method: 'POST',
-      body: JSON.stringify({ update: u })
+      body: JSON.stringify({ query: u })
     });
     setResult('update', r.ok, `<pre>${escH(r.text || (r.ok ? 'Update executed successfully.' : 'Error'))}</pre>`);
     toast(r.ok ? 'Update executed' : 'Update failed', r.ok ? 'ok' : 'err');
