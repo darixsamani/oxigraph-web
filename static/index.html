@@ -1243,7 +1243,7 @@ async function createGraph() {
   $('createGraphStatus').className = 'result-status status-idle'; $('createGraphStatus').textContent = 'LOADING';
   $('createGraphBody').innerHTML = '<span class="spinner"></span>';
   try {
-    const r = await apiFetch('/graphs', { method: 'POST', body: JSON.stringify({ graph: uri }) });
+    const r = await apiFetch('/graphs?name='+ encodeURIComponent(uri), { method: 'POST'});
     $('createGraphStatus').className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
     $('createGraphStatus').textContent = r.ok ? '200 OK' : 'ERROR';
     $('createGraphBody').innerHTML = `<pre>${escH(r.text || (r.ok ? 'Graph created.' : 'Error'))}</pre>`;
@@ -1262,7 +1262,7 @@ async function deleteGraph() {
   $('deleteGraphStatus').className = 'result-status status-idle'; $('deleteGraphStatus').textContent = 'LOADING';
   $('deleteGraphBody').innerHTML = '<span class="spinner"></span>';
   try {
-    const r = await apiFetch('/graphs', { method: 'DELETE', body: JSON.stringify({ graph: uri }) });
+    const r = await apiFetch('/graphs?name='+ encodeURIComponent(uri), { method: 'DELETE'});
     $('deleteGraphStatus').className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
     $('deleteGraphStatus').textContent = r.ok ? '200 OK' : 'ERROR';
     $('deleteGraphBody').innerHTML = `<pre>${escH(r.text || (r.ok ? 'Graph deleted.' : 'Error'))}</pre>`;
@@ -1278,10 +1278,11 @@ async function listGraphs() {
   $('graphListStatus').className = 'result-status status-idle'; $('graphListStatus').textContent = 'LOADING';
   $('graphListBody').innerHTML = '<span class="spinner"></span>';
   try {
-    const r = await apiFetch('/sparql', {
-      method: 'POST',
-      body: JSON.stringify({ query: 'SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }' })
+    const r = await apiFetch('/graphs', {
+      method: 'GET',
+      // body: JSON.stringify({ query: 'SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }' })
     });
+    console.log("list of graphs", r.json);
     $('graphListStatus').className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
     $('graphListStatus').textContent = r.ok ? '200 OK' : 'ERROR';
     if (r.ok && r.json?.results?.bindings) {
