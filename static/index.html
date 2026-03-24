@@ -1081,24 +1081,51 @@ function setQuery(q) {
   $('sparqlQuery').value = q;
 }
 
-function renderSparqlResults(json) {
-  if (!json || !json.results) return `<pre>${JSON.stringify(json, null, 2)}</pre>`;
-  const vars = json.head?.vars || [];
-  const rows = json.results?.bindings || [];
-  if (!rows.length) return '<em style="color:var(--text-dim)">No results</em>';
-  let html = `<table class="sparql-table"><thead><tr>${vars.map(v => `<th>${v}</th>`).join('')}</tr></thead><tbody>`;
+function renderSparqlResults(data) {
+  // API returns a plain array of objects like [{"?s": "<uri>", "?p": "<uri>", "?o": "value"}]
+  let rows = [];
+
+  if (Array.isArray(data)) {
+    rows = data;
+  } else if (data?.results?.bindings) {
+    // W3C SPARQL JSON fallback — convert to flat objects
+    rows = data.results.bindings.map(row => {
+      const flat = {};
+      for (const [k, v] of Object.entries(row)) {
+        if (v.type === 'uri') flat['?' + k] = `<${v.value}>`;
+        else flat['?' + k] = `"${v.value}"`;
+      }
+      return flat;
+    });
+  }
+
+  if (!rows.length) return '<em style="color:var(--text-dim)">No results returned</em>';
+
+  // Collect column headers from all rows (preserves order of first row)
+  const cols = [...new Set(rows.flatMap(r => Object.keys(r)))];
+
+  function cellClass(val) {
+    if (!val) return '';
+    if (val.startsWith('<') && val.endsWith('>')) return 'td-uri';
+    if (val.startsWith('"')) return 'td-literal';
+    return 'td-blank';
+  }
+
+  let html = `<table class="sparql-table"><thead><tr>`;
+  html += cols.map(c => `<th>${escH(c)}</th>`).join('');
+  html += `</tr></thead><tbody>`;
+
   for (const row of rows) {
     html += '<tr>';
-    for (const v of vars) {
-      const cell = row[v];
-      if (!cell) { html += '<td><span style="color:var(--text-dim)">—</span></td>'; continue; }
-      if (cell.type === 'uri') html += `<td class="td-uri" title="${cell.value}">&lt;${truncate(cell.value, 60)}&gt;</td>`;
-      else if (cell.type === 'literal') html += `<td class="td-literal">"${escH(truncate(cell.value, 80))}"</td>`;
-      else html += `<td class="td-blank">_:${escH(cell.value)}</td>`;
+    for (const col of cols) {
+      const val = row[col] ?? '';
+      html += `<td class="${cellClass(val)}" title="${escH(val)}">${escH(truncate(val, 80))}</td>`;
     }
     html += '</tr>';
   }
-  return html + '</tbody></table>';
+
+  html += '</tbody></table>';
+  return html;
 }
 
 function truncate(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
@@ -1121,7 +1148,8 @@ async function runSparqlQuery() {
       r = await apiFetch('/sparql?query=' + encodeURIComponent(q), { method: 'GET', headers: {} });
     }
     const elapsed = Date.now() - t0;
-    const rows = r.json?.results?.bindings?.length ?? '?';
+    const rows = Array.isArray(r.json) ? r.json.length : (r.json?.results?.bindings?.length ?? '?');
+    // console.log("result", r.json);
     setResult('sparql', r.ok, r.ok ? renderSparqlResults(r.json) : `<pre>${escH(r.text)}</pre>`, `${rows} rows · ${elapsed}ms`);
     if (r.ok) toast(`Query returned ${rows} rows`, 'ok');
     else toast('Query failed', 'err');
@@ -1196,7 +1224,7 @@ async function browseTriples() {
       method: 'POST',
       body: JSON.stringify({ query: 'SELECT ?s ?p ?o WHERE { ?s ?p ?o } LIMIT 200' })
     });
-    const rows = r.json?.results?.bindings?.length ?? '?';
+    const rows = Array.isArray(r.json) ? r.json.length : (r.json?.results?.bindings?.length ?? '?');
     bStatus.className = 'result-status ' + (r.ok ? 'status-ok' : 'status-err');
     bStatus.textContent = r.ok ? '200 OK' : 'ERROR';
     $('browseResultMeta').textContent = `${rows} triples`;
