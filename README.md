@@ -98,6 +98,13 @@ curl -X GET "http://localhost:8080/rdf/export?format=ttl"
 
 - Supported RDF formats for import/export: `ttl`, `nt`, `rdf`
 
+## 🎥 Video Demonstration
+
+Get a quick overview of how **Oxigrpah Web** works:
+
+[Screencast from 2026-03-25 22-23-49.webm](https://github.com/user-attachments/assets/14136ef0-d1b4-400c-9782-96202e36eb00)
+
+
 ## 📄 License
 
 This project is licensed under the MIT License. See the LICENSE
