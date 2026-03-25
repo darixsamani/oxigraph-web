@@ -28,7 +28,7 @@ pub async fn import_pdf(
             "nquads" | "nq" => RdfFormat::NQuads,
             "trig" => RdfFormat::TriG,
             "rdfxml" | "rdf" => RdfFormat::RdfXml,
-            "jsonld" => RdfFormat::JsonLd { profile: Default::default() },
+            "jsonld" | "jld" => RdfFormat::JsonLd { profile: Default::default() },
             _ => return Err(StatusError::bad_request()),
         }
     };
