@@ -11,7 +11,7 @@ repository = "https://github.com/darixsamani/oxigraph-web"
 
 categories = ["api-bindings", "database", "database-implementations", "web-programming", "web-programming::http-server"]
 
-include = ["/src", "static/index.html"]
+include = ["static/index.html"]
 
 [dependencies]
 
