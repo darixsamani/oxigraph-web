@@ -110,4 +110,4 @@ Get a quick overview of how **Oxigraph Web** works:
 This project is licensed under the MIT License. See the LICENSE
  file for details.
 
- Made with ❤️ [darixsamani](https://github.com/darixsamani)
+ Made with ❤️ by [darixsamani](https://github.com/darixsamani)
