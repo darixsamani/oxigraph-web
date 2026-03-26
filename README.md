@@ -6,7 +6,7 @@
 ![Build](https://img.shields.io/github/actions/workflow/status/darixsamani/oxigraph-web/rust.yml?branch=main&style=flat-square) 
 
 A **high-performance**, full-featured web API for [**Oxigraph**](https://github.com/oxigraph/oxigraph) – a modern Rust-based RDF/SPARQL database.  
-Provides REST endpoints, SPARQL query support, RDF import/export, graph management,interactive dashboard, and OpenAPI documentation for building scalable **semantic web applications**.  
+Provides REST endpoints, SPARQL query support, RDF import/export, graph management, interactive dashboard, and OpenAPI documentation for building scalable **semantic web applications**.  
 
 ---
 
