@@ -16,12 +16,12 @@ use oxigraph::model::GraphNameRef;
 pub async fn export_graph_endpoint(
     depot: &mut Depot,
     res: &mut Response,
-    name: QueryParam<String, false>,
+    graph: QueryParam<String, false>,
     format: QueryParam<String, false>,
 ) -> Result<(), StatusError> {
 
     let db = depot.obtain::<Db>().unwrap();
-    let graph_name = name.into_inner().unwrap_or_else(|| "".to_string());
+    let graph_name = graph.into_inner().unwrap_or_else(|| "".to_string());
     
     
     let rdf_format = match format.into_inner().unwrap_or_else(|| "turtle".to_string()).to_lowercase().as_str() {
@@ -40,6 +40,7 @@ pub async fn export_graph_endpoint(
     let graph_name_ref: GraphNameRef = if graph_name.is_empty() {
         GraphNameRef::DefaultGraph
     } else {
+        println!("Exporting graph: {}", graph_name);
         named_node_holder = Some(
             NamedNode::new(graph_name.as_str()).map_err(|e| {
                 eprintln!("Invalid graph IRI '{}': {}", graph_name, e);
