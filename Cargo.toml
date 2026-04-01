@@ -1,6 +1,6 @@
 [package]
 name = "oxigraph-web"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 author = ["Darix samani siewe <samanidarix@gmail.com>"]
 description = "A high-performance, full-featured web API for Oxigraph."
