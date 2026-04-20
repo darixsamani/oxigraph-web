@@ -37,7 +37,7 @@ pub async fn import_pdf(
     if let Some(graph_name) = graph.as_ref() {
         println!("Importing graph into named graph: {}", graph_name);
         let named_graph = NamedNode::new(graph_name)
-            .map_err(|_| StatusError::bad_request())?;
+            .map_err(|_| StatusError::bad_request().brief("Invalid graph name"))?;
         db.store.load_from_slice(
             RdfParser::from_format(rdf_format).with_default_graph(named_graph),
             body.as_ref(),
