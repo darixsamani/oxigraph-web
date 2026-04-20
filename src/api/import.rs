@@ -30,7 +30,7 @@ pub async fn import_pdf(
             "trig" => RdfFormat::TriG,
             "rdfxml" | "rdf" => RdfFormat::RdfXml,
             "jsonld" | "jld" => RdfFormat::JsonLd { profile: Default::default() },
-            _ => return Err(StatusError::bad_request()),
+            _ => return Err(StatusError::bad_request().brief("Incorrect format")),
         }
     };
 
@@ -41,9 +41,9 @@ pub async fn import_pdf(
         db.store.load_from_slice(
             RdfParser::from_format(rdf_format).with_default_graph(named_graph),
             body.as_ref(),
-        ).map_err(|_| StatusError::bad_request())?;
+        ).map_err(|_| StatusError::bad_request().brief("Failed to import graph"))?;
     } else {
-        db.store.load_from_slice( rdf_format, body.as_ref()).map_err(|_| StatusError::bad_request())?;
+        db.store.load_from_slice( rdf_format, body.as_ref()).map_err(|_| StatusError::bad_request().brief("Failed to import graph"))?;
     }
 
     Ok("Graph imported".into())
