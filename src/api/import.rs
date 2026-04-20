@@ -18,7 +18,7 @@ pub async fn import_pdf(
     
 ) -> Result<String, StatusError> {
     let db = depot.obtain::<Db>().unwrap();
-    let body = req.payload().await.map_err(|_| StatusError::bad_request())?;
+    let body = req.payload().await.map_err(|_| StatusError::bad_request().brief("Failed to Parse playload"))?;
 
     // also detect rdf_format from content-type header if format query parameter is not provided
     
