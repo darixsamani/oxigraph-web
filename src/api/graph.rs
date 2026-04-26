@@ -19,12 +19,12 @@ pub async fn create_graph(
 
     //check if graph already exists
     if db.store.named_graphs().any(|res| res.ok().map_or(false, |g| g == NamedOrBlankNode::NamedNode(NamedNode::new(graph.clone()).unwrap()))) {
-        return Err(StatusError::conflict());
+        return Err(StatusError::conflict().brief("Graph already exists"));
     }
 
-    let graph_name = NamedNode::new(graph).map_err(|_| StatusError::bad_request())?;
+    let graph_name = NamedNode::new(graph).map_err(|_| StatusError::bad_request().brief("Error in graph URI"))?;
 
-    db.store.insert_named_graph(&graph_name).map_err(|_| StatusError::internal_server_error())?;
+    db.store.insert_named_graph(&graph_name).map_err(|_| StatusError::internal_server_error().brief("Error in inserted named graph"))?;
 
     Ok("Graph created".into())
     
@@ -42,14 +42,14 @@ pub async fn delete_graph(
 ) -> Result<String, StatusError> {
     let db = depot.obtain::<Db>().unwrap();
     let graph = name.into_inner();
-    let graph_name = NamedNode::new(graph).map_err(|_| StatusError::bad_request())?;
+    let graph_name = NamedNode::new(graph).map_err(|_| StatusError::bad_request().brief("Error to load graph"))?;
     
     // check if graph exists
     
     if !db.store.named_graphs().any(|res| res.ok().map_or(false, |g| g == NamedOrBlankNode::NamedNode(graph_name.clone()))) {
-        return Err(StatusError::not_found());
+        return Err(StatusError::not_found().brief("Graph not found"));
     }
-    db.store.remove_named_graph(&graph_name).map_err(|_| StatusError::internal_server_error())?;
+    db.store.remove_named_graph(&graph_name).map_err(|_| StatusError::internal_server_error().brief("Error in removing named graph"))?;
 
     Ok("Graph deleted".into())
 }
